@@ -1,0 +1,88 @@
+version: 2.1
+executors:
+  nodejsscan:
+    description: |
+      nodejsscan cli docker image
+    docker:
+    - image: circleci/python:3.8.1-buster
+
+
+jobs:
+  nodejsscan:
+    description: Scan Javascript package dependencies
+    executor: nodejsscan
+    steps:
+      - checkout
+      - run: mkdir -p /tmp/artifacts
+      - run: touch /tmp/artifacts/results-nodejsscan.json
+      - run: pwd 
+      - run:
+          command: |
+              ls
+              pip install nodejsscan
+              pip install git+https://github.com/Financial-Times/nodejsscan-results-omitter
+              nodejsscan -d app1/ -o /tmp/artifacts/results-nodejsscan.json
+#              cd /tmp/artifacts
+#              nodejsscan-results-omitter > /tmp/artifacts/results1.txt
+          name: Run NodeJsScan on Property-repo
+      - store_artifacts:
+          path: /tmp/artifacts
+  brakeman:
+    description: Brakeman Scan
+    docker:
+      - image: quay.io/abhinavkishoregv/brakeman:v1
+    steps:
+      - checkout
+      - run: mkdir -p /tmp/artifacts
+      - run: 
+          command: brakeman -o /tmp/artifacts/results-brakeman.html
+          name: Scan using Brakeman
+      - store_artifacts:
+          path: /tmp/artifacts
+
+#   pmd:
+#     description: Scan code using PMD 
+#     machine: true
+#     steps:
+#       - checkout
+# #      - run: apt-get update && apt-get -y upgrade
+# #      - run: apt-get install -y wget unzip git
+#       - run: mkdir -p /tmp/artifacts
+#       - run: touch /tmp/artifacts/results-pmd.html
+#       - run:
+#           command: |
+#                cd $HOME
+#                wget https://github.com/pmd/pmd/releases/download/pmd_releases%2F6.23.0/pmd-bin-6.23.0.zip
+#                unzip pmd-bin-6.23.0.zip
+#                cd pmd-bin-6.23.0/bin/
+#                chmod +x run.sh
+#                if ./run.sh pmd -dir /home/circleci/project/app1/ -f html -rulesets rulesets/java/quickstart.xml,category/java/codestyle.xml > /tmp/artifacts/results-pmd.html; then exit 0; fi
+
+#           name: Run PMD Scan on Property-repo
+#       - store_artifacts:
+#           path: /tmp/artifacts
+
+workflows:
+  version: 2.1
+  build:
+    jobs:
+      - nodejsscan
+      - brakeman
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
