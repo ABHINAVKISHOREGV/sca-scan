@@ -30,7 +30,7 @@ jobs:
   brakeman:
     description: Brakeman Scan
     docker:
-      - image: quay.io/abhinavkishoregv/brakeman:v1
+      - image: abhinavkishoregv/brakeman:v1
     steps:
       - checkout
       - run: mkdir -p /tmp/artifacts
