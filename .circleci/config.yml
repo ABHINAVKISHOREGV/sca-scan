@@ -21,7 +21,7 @@ jobs:
               ls
               pip install nodejsscan
               pip install git+https://github.com/Financial-Times/nodejsscan-results-omitter
-              nodejsscan -d app1/ -o /tmp/artifacts/results-nodejsscan.json
+              nodejsscan -d app/ -o /tmp/artifacts/results-nodejsscan.json
 #              cd /tmp/artifacts
 #              nodejsscan-results-omitter > /tmp/artifacts/results1.txt
           name: Run NodeJsScan on Property-repo
@@ -30,12 +30,17 @@ jobs:
   brakeman:
     description: Brakeman Scan
     docker:
-      - image: abhinavkishoregv/brakeman:v1
+      - image: ruby:alpine3.12
     steps:
       - checkout
+      - run: apk update && apk upgrade && apk add curl wget bash
+      - run: apk add ruby ruby-io-console ruby-bundler
+      - run: rm -rf /var/cache/apk/*
+      - run: rm -rf /src/*
+      - run: gem install brakeman
       - run: mkdir -p /tmp/artifacts
       - run: 
-          command: brakeman -o /tmp/artifacts/results-brakeman.html
+          command: brakeman -d app/ -o /tmp/artifacts/results-brakeman.html
           name: Scan using Brakeman
       - store_artifacts:
           path: /tmp/artifacts
