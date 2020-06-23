@@ -8,40 +8,37 @@ executors:
 
 
 jobs:
-  nodejsscan:
+  run-sca-tool-nodejsscan:
+    working_directory: /src
     description: Scan Javascript package dependencies
-    executor: nodejsscan
+    docker:
+    - image: python:slim
     steps:
       - checkout
-      - run: mkdir -p /tmp/artifacts
-      - run: touch /tmp/artifacts/results-nodejsscan.json
-      - run: pwd 
-      - run:
+      - deploy:
+          name:
           command: |
-              ls
+              mkdir -p /tmp/artifacts
+              touch /tmp/artifacts/results-nodejsscan.json
               pip install nodejsscan
-              pip install git+https://github.com/Financial-Times/nodejsscan-results-omitter
-              nodejsscan -d app/ -o /tmp/artifacts/results-nodejsscan.json
-#              cd /tmp/artifacts
-#              nodejsscan-results-omitter > /tmp/artifacts/results1.txt
-          name: Run NodeJsScan on Property-repo
+              nodejsscan -d /src -o /tmp/artifacts/results-nodejsscan.json
       - store_artifacts:
           path: /tmp/artifacts
-  brakeman:
+
+  run-sca-tool-brakeman:
+    working_directory: /src
     description: Brakeman Scan
     docker:
       - image: ruby:alpine3.12
     steps:
       - checkout
-      - run: apk update && apk upgrade && apk add curl wget bash
-      - run: apk add ruby ruby-io-console ruby-bundler
-      - run: rm -rf /var/cache/apk/*
-      - run: rm -rf /src/*
-      - run: gem install brakeman
-      - run: mkdir -p /tmp/artifacts
-      - run: 
-          command: brakeman -d app/ -o /tmp/artifacts/results-brakeman.html
-          name: Scan using Brakeman
+      - deploy:
+          command: |
+            apk update && apk add curl wget bash
+            apk add ruby ruby-io-console ruby-bundler
+            gem install brakeman
+            mkdir -p /tmp/artifacts
+            brakeman -d /src -o /tmp/artifacts/results-brakeman.html
       - store_artifacts:
           path: /tmp/artifacts
 
@@ -49,20 +46,17 @@ jobs:
 #     description: Scan code using PMD 
 #     machine: true
 #     steps:
-#       - checkout
-# #      - run: apt-get update && apt-get -y upgrade
-# #      - run: apt-get install -y wget unzip git
-#       - run: mkdir -p /tmp/artifacts
-#       - run: touch /tmp/artifacts/results-pmd.html
+#       - checkout  
 #       - run:
 #           command: |
-#                cd $HOME
-#                wget https://github.com/pmd/pmd/releases/download/pmd_releases%2F6.23.0/pmd-bin-6.23.0.zip
-#                unzip pmd-bin-6.23.0.zip
-#                cd pmd-bin-6.23.0/bin/
-#                chmod +x run.sh
-#                if ./run.sh pmd -dir /home/circleci/project/app1/ -f html -rulesets rulesets/java/quickstart.xml,category/java/codestyle.xml > /tmp/artifacts/results-pmd.html; then exit 0; fi
-
+#                 mkdir -p /tmp/artifacts
+#                 touch /tmp/artifacts/results-pmd.html
+#                 cd $HOME
+#                 wget https://github.com/pmd/pmd/releases/download/pmd_releases%2F6.23.0/pmd-bin-6.23.0.zip
+#                 unzip pmd-bin-6.23.0.zip
+#                 cd pmd-bin-6.23.0/bin/
+#                 chmod +x run.sh
+#                 if ./run.sh pmd -dir /home/circleci/project/app1/ -f html -rulesets rulesets/java/quickstart.xml,category/java/codestyle.xml > /tmp/artifacts/results-pmd.html; then exit 0; fi
 #           name: Run PMD Scan on Property-repo
 #       - store_artifacts:
 #           path: /tmp/artifacts
@@ -73,6 +67,19 @@ workflows:
     jobs:
       - nodejsscan
       - brakeman
+  schedule-workflow:
+    triggers:
+      - schedule:
+                #"Min Hour Day Month Day_of_week"
+          cron: "0 4 * * *"
+          filters:
+            branches:
+              only:
+                - sca-scan
+
+    jobs:
+      - run-sca-tool-brakeman
+      - run-sca-tool-nodejsscan
 
 
 
