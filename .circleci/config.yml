@@ -61,12 +61,11 @@ workflows:
     triggers:
       - schedule:
                 #"Min Hour Day Month Day_of_week"
-          cron: "* 13 * * *"
+          cron: "* * * * *"
           filters:
             branches:
               only:
                 - sca-scan
-                - master
 
     jobs:
       - run-sca-tool-brakeman
