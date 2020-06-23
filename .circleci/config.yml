@@ -1,10 +1,4 @@
 version: 2.1
-executors:
-  nodejsscan:
-    description: |
-      nodejsscan cli docker image
-    docker:
-    - image: circleci/python:3.8.1-buster
 
 
 jobs:
@@ -63,7 +57,7 @@ jobs:
 
 workflows:
   version: 2.1
-  schedule-workflow:
+  build:
     triggers:
       - schedule:
                 #"Min Hour Day Month Day_of_week"
@@ -77,6 +71,7 @@ workflows:
     jobs:
       - run-sca-tool-brakeman
       - run-sca-tool-nodejsscan
+
 
 
 
