@@ -61,7 +61,7 @@ workflows:
     triggers:
       - schedule:
                 #"Min Hour Day Month Day_of_week"
-          cron: "* 13 * * *"
+          cron: "* * * 1 *"
           filters:
             branches:
               only:
